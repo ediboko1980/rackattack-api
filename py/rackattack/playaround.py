@@ -24,6 +24,7 @@ print "Hardware Constraints:", hardwareConstraints
 requirement = api.Requirement(
     imageLabel=args.label,
     imageHint="playaround",
+    pool='bond',
     hardwareConstraints=hardwareConstraints)
 allocation = client.allocate(
     requirements={'node': requirement},
@@ -56,6 +57,7 @@ try:
                 print "Unable to fetch serial log: %s" % e
             raise
         print "Opening ssh session. Close it to free up allocation"
+        import pdb; pdb.set_trace()
         os.system(
             "sshpass -p %(password)s ssh -o ServerAliveInterval=5 -o ServerAliveCountMax=1 "
             "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p %(port)d "
