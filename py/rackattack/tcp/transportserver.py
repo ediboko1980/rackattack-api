@@ -16,6 +16,7 @@ class TransportProtocol(basic.Int32StringReceiver):
     def connectionMade(self):
         basic.Int32StringReceiver.connectionMade(self)
         self.transport.setTcpNoDelay(True)
+        self.transport.setTcpKeepAlive(True)
 
     def stringReceived(self, string):
         try:
