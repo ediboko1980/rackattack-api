@@ -14,7 +14,8 @@ class Allocation(api.Allocation):
         self._subscribe = subscribe
         self._forceReleaseCallback = None
         self._dead = None
-        self._progressCallback = None
+        self._progressFetchingCallback = None
+        self._progressDigestingCallback = None
         self._progressPercent = dict()
         self._inauguratorsIDs = dict()
         self._waitEvent = threading.Event()
@@ -45,9 +46,13 @@ class Allocation(api.Allocation):
         assert not self._dead
         return self._id
 
-    def registerProgressCallback(self, callback):
-        assert self._progressCallback is None
-        self._progressCallback = callback
+    def registerFetchingProgressCallback(self, callback):
+        assert self._progressFetchingCallback is None
+        self._progressFetchingCallback = callback
+
+    def registerDigestionProgressCallback(self, callback):
+        assert self._progressDigestingCallback is None
+        self._progressDigestingCallback = callback
 
     def done(self):
         assert not self._dead
@@ -147,21 +152,25 @@ class Allocation(api.Allocation):
             state = event['progress']['state']
             msg = "Inaugurator '%(id)s' %(state)s percent: %(percent)s" % dict(
                 id=event['id'], percent=percent, state=state)
-            if state == 'fetching':
-                logging.info(msg)
-                self._progressPercent[event['id']] = percent
-            elif state == 'digesting':
-                logging.debug(msg)
+            logging.info(msg)
+
+            self._progressPercent.setdefault(event['id'], dict())[state] = percent
+            if state == "fetching":
+                self._progressPercent.setdefault(event['id'], dict())['digesting'] = 100
+            self._calculateAndReportProgress()
         else:
             logging.info("Inaugurator '%(id)s' status %(status)s", event)
-        if self._progressCallback is not None:
-            self._progressCallback(overallPercent=self._overallPercent(), event=event)
 
-    def _overallPercent(self):
+    def _calculateAndReportProgress(self):
         nrNodes = len(self._requirements)
         if nrNodes == 0:
             return 0
-        return sum(self._progressPercent.values()) / nrNodes
+
+        for progressType in ['digesting', 'fetching']:
+            progress = sum([v.get(progressType, 0) for v in self._progressPercent.values()]) / nrNodes
+            callbackFunc = getattr(self, "_progress" + progressType.capitalize() + "Callback")
+            if callbackFunc is not None:
+                callbackFunc(overallPercent=progress)
 
     def _refetchInauguratorIDs(self):
         previous = self._inauguratorsIDs.values()
