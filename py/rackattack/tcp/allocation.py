@@ -174,3 +174,7 @@ class Allocation(api.Allocation):
         for id in removedIDs:
             logging.debug("Unregistering from inaugurator of: %(id)s", dict(id=id))
             self._subscribe.unregisterForInaugurator(id)
+
+    def renameUser(self, user):
+        assert isinstance(user, str)
+        self._ipcClient.call('rename_allocation', id=self._id, user=user)
