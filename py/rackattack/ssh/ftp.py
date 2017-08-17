@@ -79,3 +79,10 @@ class FTP:
             sftp.unlink(path)
         finally:
             sftp.close()
+
+    def listDir(self, path):
+        sftp = self._sshClient.open_sftp()
+        try:
+            return sftp.listdir(path)
+        finally:
+            sftp.close()
