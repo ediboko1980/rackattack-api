@@ -6,7 +6,10 @@ from rackattack.tcp import suicide
 from rackattack.tcp import publish
 from rackattack import pikapatchwakeupfromanotherthread
 
-_logger = logging.getLogger(__name__)
+# handler = logging.StreamHandler()
+# _logger = logging.getLogger(__name__)
+# _logger.addHandler(handler)
+# _logger.setLevel(logging.INFO)
 
 
 class Subscribe(threading.Thread):
@@ -20,10 +23,10 @@ class Subscribe(threading.Thread):
         self._closed = False
         threading.Thread.__init__(self)
         self.daemon = True
-        _logger.info("Creating a channel to Rackattack's RabbitMQ...")
+        logging.info("Creating a channel to Rackattack's RabbitMQ...")
         threading.Thread.start(self)
         self._readyEvent.wait()
-        _logger.info("Channel is open.")
+        logging.info("Channel is open.")
 
     def registerForInagurator(self, id, callback):
         exchange = self._exchangeForInaugurator(id)
@@ -58,7 +61,7 @@ class Subscribe(threading.Thread):
         self._wakeUpFromAnotherThread.runInThread(self._unregisterFromExchange, exchange=exchange)
 
     def close(self):
-        _logger.info("Closing connection")
+        logging.info("Closing connection")
         self._closed = True
         self._channel.close()
         self._connection.close()
@@ -80,20 +83,20 @@ class Subscribe(threading.Thread):
         if self._closed:
             self._connection.ioloop.stop()
         elif self._skipSuicide:
-            _logger.error("Connection closed, not commiting suicide: %(replyCode)s %(replyText)s", dict(
+            logging.error("Connection closed, not commiting suicide: %(replyCode)s %(replyText)s", dict(
                 replyCode=reply_code, replyText=reply_text))
         else:
-            _logger.error("Connection closed, committing suicide: %(replyCode)s %(replyText)s", dict(
+            logging.error("Connection closed, committing suicide: %(replyCode)s %(replyText)s", dict(
                 replyCode=reply_code, replyText=reply_text))
             suicide.killSelf()
 
     def _onConnectionOpen(self, unused_connection):
-        _logger.info('Connection is open. Openning a channel...')
+        logging.info('Connection is open. Openning a channel...')
         self._connection.add_on_close_callback(self._onConnectionClosed)
         self._connection.channel(on_open_callback=self._onChannelOpen)
 
     def _onChannelClosed(self, channel, reply_code, reply_text):
-        _logger.error('Channel %(channel)i was closed: (%(replyCode)s) %(replyText)s', dict(
+        logging.error('Channel %(channel)i was closed: (%(replyCode)s) %(replyText)s', dict(
             channel=channel, replyCode=reply_code, replyText=reply_text))
         self._connection.close()
 
@@ -103,21 +106,21 @@ class Subscribe(threading.Thread):
         self._readyEvent.set()
 
     def run(self):
-        _logger.info("Connecting to '%(amqpURL)s'...", dict(amqpURL=self._amqpURL))
+        logging.info("Connecting to '%(amqpURL)s'...", dict(amqpURL=self._amqpURL))
         try:
             self._connection = pika.SelectConnection(
                 pika.URLParameters(self._amqpURL),
                 self._onConnectionOpen,
                 stop_ioloop_on_close=False)
         except Exception as ex:
-            _logger.exception("Subscribe thread has crashed: %(message)s", dict(message=str(ex)))
+            logging.exception("Subscribe thread has crashed: %(message)s", dict(message=str(ex)))
             if not self._skipSuicide:
-                _logger.info("Commiting suicide...")
+                logging.info("Commiting suicide...")
                 suicide.killSelf()
             raise
         self._wakeUpFromAnotherThread = \
-            pikapatchwakeupfromanotherthread.PikaPatchWakeUpFromAnotherThread(_logger, self._connection)
-        _logger.debug("Starting pika's IO loop...")
+            pikapatchwakeupfromanotherthread.PikaPatchWakeUpFromAnotherThread(logging, self._connection)
+        logging.debug("Starting pika's IO loop...")
         self._connection.ioloop.start()
 
 
@@ -135,7 +138,7 @@ class _Subscribe:
 
     def _onBind(self, *args):
         self._channel.basic_consume(self._onMessage, self._queueName, consumer_tag=self._consumerTag)
-        _logger.debug("Listening on exchange %(exchange)s", dict(exchange=self._exchangeName))
+        logging.debug("Listening on exchange %(exchange)s", dict(exchange=self._exchangeName))
 
     def _onQueueDeclared(self, methodFrame):
         self._queueName = methodFrame.method.queue

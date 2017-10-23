@@ -13,6 +13,10 @@ class Node(api.Node):
         self._info = info
         self._id = info['id']
 
+    def __repr__(self):
+        return "{}({}, {}, {}, {})".format(self.__class__.__name__,
+                                           self._ipcClient, self._allocation, self._name, self._info)
+
     def rootSSHCredentials(self):
         return self._ipcClient.call(
             "node__rootSSHCredentials", allocationID=self._allocation._idForNodeIPC(), nodeID=self._id)

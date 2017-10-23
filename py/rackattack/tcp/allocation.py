@@ -4,14 +4,16 @@ from rackattack.tcp import suicide
 import threading
 import logging
 
+logging.getLogger().setLevel(logging.INFO)
+
 
 class Allocation(api.Allocation):
     def __init__(self, id, requirements, ipcClient, subscribe, heartbeat):
         self._id = id
         self._requirements = requirements
         self._ipcClient = ipcClient
-        self._heartbeat = heartbeat
         self._subscribe = subscribe
+        self._heartbeat = heartbeat
         self._forceReleaseCallback = None
         self._dead = None
         self._progressCallback = None
@@ -26,6 +28,10 @@ class Allocation(api.Allocation):
         self._heartbeat.register(id)
         if self.dead() or self.done():
             self._waitEvent.set()
+
+    def __repr__(self):
+        return "{}({}, {}, {}, {}, {})".format(self.__class__.__name__,
+                                               self._id, self._requirements, self._ipcClient, self._subscribe, self._heartbeat)
 
     def _logNodesList(self):
         nodesNames = self._inauguratorsIDs.keys()

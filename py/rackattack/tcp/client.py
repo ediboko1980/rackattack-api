@@ -14,6 +14,7 @@ class Client(api.Client):
                  providerRequestLocation,
                  providerSubscribeLocation,
                  providerHTTPLocation):
+        self._providerRequestLocation = providerRequestLocation
         self._providerSubscribeLocation = providerSubscribeLocation
         self._providerHTTPLocation = providerHTTPLocation
         self._request = transport.Transport(providerRequestLocation)
@@ -25,6 +26,10 @@ class Client(api.Client):
         self._connectionToProviderInterrupted = self._connectionToProviderInterruptedDefaultCallback
         self._heartbeat = heartbeat.HeartBeat(self)
         self._skipSuicide = bool(os.getenv("SKIP_SUICIDE", None))
+
+    def __repr__(self):
+        return "{}({}, {}, {})".format(self.__class__.__name__,
+                                       self._providerRequestLocation, self._providerSubscribeLocation, self._providerHTTPLocation)
 
     def allocate(self, requirements, allocationInfo):
         assert len(requirements) > 0

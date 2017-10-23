@@ -49,6 +49,10 @@ class Requirement:
         self.pool = pool
         self.serverIDWildcard = serverIDWildcard
 
+    def __repr__(self):
+        return "{}({}, {}, {}, {}, {})".format(self.__class__.__name__,
+                                               self.imageLabel, self.imageHint, self.hardwareConstraints, self.pool, self.serverIDWildcard)
+
 
 class AllocationInfo:
     def __init__(self, user, purpose, nice=0, comment=""):
