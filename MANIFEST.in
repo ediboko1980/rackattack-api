@@ -1,0 +1,3 @@
+include rackattack-api.pth
+recursive-include py/rackattack *.py
+exclude test/*

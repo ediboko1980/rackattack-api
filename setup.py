@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import sys
 import subprocess
 from setuptools import find_packages, setup
+import sysconfig
 
 NAME = 'rackattack-api'
 DESCRIPTION = 'Rackattack API repo'
@@ -39,6 +41,20 @@ _version = version()
 _packages = find_packages('py')  # , exclude=('test',))
 print(_packages)
 
+site_packages_path_pure = sysconfig.get_path('purelib')
+site_packages_path_plat = sysconfig.get_path('platlib')
+data_files = [
+    (site_packages_path_pure, ["rackattack-api.pth"]),
+    ('', ["rackattack-api.pth"]),
+    (site_packages_path_plat, ["rackattack-api.pth"]),
+    (os.path.join(sys.prefix, 'lib/python%s/site-packages' % sys.version[:3]), ["rackattack-api.pth"]),
+]
+
+from distutils import sysconfig
+site_packages_path = sysconfig.get_python_lib()
+data_files.append((site_packages_path, ["rackattack-api.pth"]))
+
+
 setup(
     name=NAME,
     version=_version,
@@ -51,6 +67,7 @@ setup(
     package_dir={
         'rackattack': 'py/rackattack',
     },
+    data_files=data_files,
     install_requires=REQUIRED,
     include_package_data=True,
     license='MIT',
