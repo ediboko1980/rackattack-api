@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import os
+import subprocess
+from setuptools import find_packages, setup
+
+NAME = 'rackattack-api'
+DESCRIPTION = 'Rackattack API repo'
+URL = 'https://github.com/stratoscale/rackattack-api'
+EMAIL = 'ruslan.portnoy@stratoscale.com'
+AUTHOR = 'Stratoscale'
+PKG_INFO = 'PKG-INFO'
+REQUIRED = []
+
+
+def _get_version_hash():
+    """get from git the tag/hash of our latest commit"""
+    try:
+        proc = subprocess.Popen(["git", "describe", "--tags", "--dirty", "--always"], stdout=subprocess.PIPE)
+    except EnvironmentError:
+        print("Couldn't run git to get a version number for setup.py")
+        return "N/A"
+    ver = proc.communicate()[0]
+    return ver.strip()
+
+
+def version():
+    if os.path.exists(PKG_INFO):
+        with open(PKG_INFO) as package_info:
+            for key, value in (line.split(':', 1) for line in package_info):
+                if key.startswith('Version'):
+                    return value.strip()
+
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
+
+
+here = os.path.abspath(os.path.dirname(__file__))
+_version = version()
+_packages = find_packages('py')  # , exclude=('test',))
+print(_packages)
+
+setup(
+    name=NAME,
+    version=_version,
+    description=DESCRIPTION,
+    long_description=DESCRIPTION,
+    author=AUTHOR,
+    author_email=EMAIL,
+    url=URL,
+    packages=_packages,
+    package_dir={
+        'rackattack': 'py/rackattack',
+    },
+    install_requires=REQUIRED,
+    include_package_data=True,
+    license='MIT',
+    classifiers=[  # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: Implementation :: CPython',
+    ],
+)

@@ -6,3 +6,4 @@ rackattack.egg-info
 images.fortests
 .coverage
 attic
+*.egg-info/
