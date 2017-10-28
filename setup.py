@@ -1,29 +1,66 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import re
 import sys
+import codecs
 import subprocess
 from setuptools import find_packages, setup
-import sysconfig
 
-NAME = 'rackattack-api'
-DESCRIPTION = 'Rackattack API repo'
 URL = 'https://github.com/stratoscale/rackattack-api'
-EMAIL = 'ruslan.portnoy@stratoscale.com'
-AUTHOR = 'Stratoscale'
+DESCRIPTION = 'Rackattack API repo'
+NAME = os.path.basename(URL)
 PKG_INFO = 'PKG-INFO'
-REQUIRED = []
+AUTHOR = 'Stratoscale'
+MAINTAINER = 'Ruslan Portnoy'
+EMAIL = 'ruslan.portnoy@stratoscale.com'
+DEPENDENCY_REGEX = re.compile(r"(?P<svn>git)\+(?P<url>https://github.com/\S+)/(?P<package>\S+)@(?P<version>[0-9a-f]+)#egg=(?P<egg>\S+)")
 
 
-def _get_version_hash():
-    """get from git the tag/hash of our latest commit"""
-    try:
-        proc = subprocess.Popen(["git", "describe", "--tags", "--dirty", "--always"], stdout=subprocess.PIPE)
-    except EnvironmentError:
-        print("Couldn't run git to get a version number for setup.py")
-        return "N/A"
-    ver = proc.communicate()[0]
-    return ver.strip()
+def _get_dependencies():
+    dependencies_file = "dependencies.txt"
+    result = []
+    if not os.path.exists(dependencies_file):
+        return result
+    with open(dependencies_file) as f:
+        for line in f.readlines():
+            match = DEPENDENCY_REGEX.match(line.strip())
+            if not match:
+                continue
+            dep = match.groupdict()
+            result.append(dep)
+    return result
+
+
+def dependencies():
+    result = []
+    for dep in _get_dependencies():
+        result.append("{svn}+{url}/{package}@{version}#egg={egg}-{version}".format(**dep))
+    return result
+
+
+def required():
+    result = []
+    # dependencies = _get_dependencies()
+    # for dep in dependencies:
+    #     result.append("{egg}=={version}".format(**dep))
+    requirements_file = "requirements.txt"
+    if not os.path.exists(requirements_file):
+        return result
+    with open("requirements.txt") as f:
+        for line in f.readlines():
+            if not line.strip():
+                continue
+            if line.strip().startswith('#'):
+                continue
+            result.append(line)
+    return result
+
+
+def data_files():
+    site_packages_dir = os.path.join(sys.prefix, 'lib/python%s/site-packages' % sys.version[:3])
+    pth_file = "{repo}.pth".format(repo=os.path.basename(URL))
+    return [(site_packages_dir, [pth_file])]
 
 
 def version():
@@ -36,34 +73,48 @@ def version():
     return subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
 
 
-here = os.path.abspath(os.path.dirname(__file__))
-_version = version()
-_packages = find_packages('py')  # , exclude=('test',))
-print(_packages)
+def read(fname):
+    file_path = os.path.join(os.path.dirname(__file__), fname)
+    return codecs.open(file_path, encoding='utf-8').read()
 
-data_files = [
-    (os.path.join(sys.prefix, 'lib/python%s/site-packages' % sys.version[:3]), ["rackattack-api.pth"]),
-]
+
+REQUIRED = required()
+DEPENDENCIES = dependencies()
+VERSION = version()
+PACKAGES = find_packages('py')  # , exclude=('test',))
+DATA_FILES = data_files()
+
+# data_files = [
+#     (os.path.join(sys.prefix, 'lib/python%s/site-packages' % sys.version[:3]), ["rackattack-api.pth"]),
+# ]
 
 
 setup(
     name=NAME,
-    version=_version,
+    version=VERSION,
     description=DESCRIPTION,
     long_description=DESCRIPTION,
     author=AUTHOR,
     author_email=EMAIL,
+    maintainer=MAINTAINER,
     url=URL,
-    packages=_packages,
+    packages=PACKAGES,
     package_dir={
-        'rackattack': 'py/rackattack',
+        '': 'py',
     },
-    data_files=data_files,
+    namespace_packages=[
+        'rackattack',
+    ],
+    data_files=DATA_FILES,
     install_requires=REQUIRED,
+    dependency_links=DEPENDENCIES,
     include_package_data=True,
     license='MIT',
     classifiers=[  # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: Implementation :: CPython',
