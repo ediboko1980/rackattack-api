@@ -74,14 +74,16 @@ class Allocation(api.Allocation):
         if death is not None:
             raise Exception(death)
 
-    def nodes(self):
+    def allocatedMap(self):
         assert not self._dead
         assert self.done()
-        allocatedMap = self._ipcClient.call('allocation__nodes', id=self._id)
+        return self._ipcClient.call('allocation__nodes', id=self._id)
+
+    def nodes(self):
+        allocatedMap = self.allocatedMap()
         result = {}
         for name, info in allocatedMap.iteritems():
-            nodeInstance = node.Node(
-                ipcClient=self._ipcClient, allocation=self, name=name, info=info)
+            nodeInstance = node.Node(ipcClient=self._ipcClient, allocation=self, name=name, info=info)
             result[name] = nodeInstance
         return result
 
