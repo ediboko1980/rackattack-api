@@ -82,7 +82,7 @@ REQUIRED = required()
 DEPENDENCIES = dependencies()
 VERSION = version()
 PACKAGES = find_packages('py')  # , exclude=('test',))
-DATA_FILES = data_files()
+DATA_FILES = []  # data_files()
 
 # data_files = [
 #     (os.path.join(sys.prefix, 'lib/python%s/site-packages' % sys.version[:3]), ["rackattack-api.pth"]),
