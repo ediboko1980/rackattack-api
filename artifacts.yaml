@@ -1,0 +1,7 @@
+version: 2
+
+services:
+
+  rackattack-api:
+      pips:
+      - dist/rackattack-api-*.tar.gz

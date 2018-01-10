@@ -1,4 +1,4 @@
-all: check_convention unittest
+all: clean build
 
 unittest:
 	UPSETO_JOIN_PYTHON_NAMESPACES=Yes PYTHONPATH=py python -m coverage run py/rackattack/tests/runner.py
@@ -44,6 +44,6 @@ pylint3k:
 	pylint -r n -f colorized --py3k && echo "+ $@ succeessfull"
 
 build:
-	@python setup.py -q sdist bdist_wheel && echo "+ $@ succeessfull"
+	@python setup.py -q sdist bdist_wheel --universal && echo "+ $@ succeessfull"
 
 .PHONY: build
