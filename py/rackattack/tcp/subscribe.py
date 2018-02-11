@@ -23,10 +23,10 @@ class Subscribe(threading.Thread):
         self._closed = False
         threading.Thread.__init__(self)
         self.daemon = True
-        logging.info("Creating a channel to Rackattack's RabbitMQ...")
+        logging.debug("Creating a channel to Rackattack's RabbitMQ...")
         threading.Thread.start(self)
         self._readyEvent.wait()
-        logging.info("Channel is open.")
+        logging.debug("Channel is open.")
 
     def registerForInagurator(self, id, callback):
         exchange = self._exchangeForInaugurator(id)
@@ -61,7 +61,7 @@ class Subscribe(threading.Thread):
         self._wakeUpFromAnotherThread.runInThread(self._unregisterFromExchange, exchange=exchange)
 
     def close(self):
-        logging.info("Closing connection")
+        logging.debug("Closing connection")
         self._closed = True
         self._channel.close()
         self._connection.close()
@@ -91,7 +91,7 @@ class Subscribe(threading.Thread):
             suicide.killSelf()
 
     def _onConnectionOpen(self, unused_connection):
-        logging.info('Connection is open. Openning a channel...')
+        logging.debug('Connection is open. Openning a channel...')
         self._connection.add_on_close_callback(self._onConnectionClosed)
         self._connection.channel(on_open_callback=self._onChannelOpen)
 
@@ -106,7 +106,7 @@ class Subscribe(threading.Thread):
         self._readyEvent.set()
 
     def run(self):
-        logging.info("Connecting to '%(amqpURL)s'...", dict(amqpURL=self._amqpURL))
+        logging.debug("Connecting to '%(amqpURL)s'...", dict(amqpURL=self._amqpURL))
         try:
             self._connection = pika.SelectConnection(
                 pika.URLParameters(self._amqpURL),
@@ -115,7 +115,7 @@ class Subscribe(threading.Thread):
         except Exception as ex:
             logging.exception("Subscribe thread has crashed: %(message)s", dict(message=str(ex)))
             if not self._skipSuicide:
-                logging.info("Commiting suicide...")
+                logging.debug("Commiting suicide...")
                 suicide.killSelf()
             raise
         self._wakeUpFromAnotherThread = \
