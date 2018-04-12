@@ -8,8 +8,8 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 class Allocation(api.Allocation):
-    def __init__(self, id, requirements, ipcClient, subscribe, heartbeat):
-        self._id = id
+    def __init__(self, allocation_id, requirements, ipcClient, subscribe, heartbeat):
+        self._id = allocation_id
         self._requirements = requirements
         self._ipcClient = ipcClient
         self._subscribe = subscribe
@@ -21,11 +21,11 @@ class Allocation(api.Allocation):
         self._inauguratorsIDs = dict()
         self._waitEvent = threading.Event()
         self._subscribe.registerForAllocation(self._id, self._allocationEventBroadcasted)
-        logging.info("Allocation created (id: %(id)s). Fetching list of allocated nodes from Rackattack...",
-                     dict(id=self._id))
+        logging.info("Allocation created (id: %(allocation_id)s). Fetching list of allocated nodes from Rackattack...",
+                     dict(allocation_id=self._id))
         self._refetchInauguratorIDs()
         self._logNodesList()
-        self._heartbeat.register(id)
+        self._heartbeat.register(allocation_id)
         if self.dead() or self.done():
             self._waitEvent.set()
 

@@ -51,7 +51,7 @@ class Client(api.Client):
         if self._subscribe is None:
             self._subscribe = subscribe.Subscribe(amqpURL=self._providerSubscribeLocation, skipSuicide=self._skipSuicide)
         allocationInstance = allocation.Allocation(
-            id=allocationID, requirements=requirements, ipcClient=self, subscribe=self._subscribe, heartbeat=self._heartbeat)
+            allocation_id=allocationID, requirements=requirements, ipcClient=self, subscribe=self._subscribe, heartbeat=self._heartbeat)
         self._activeAllocations.append(allocationInstance)
         return allocationInstance
 
