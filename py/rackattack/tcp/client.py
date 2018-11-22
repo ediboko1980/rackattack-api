@@ -70,7 +70,7 @@ class Client(api.Client):
         self._request.sendJSON(dict(cmd=cmd, arguments=arguments))
         result = self._request.receiveJSON(timeout=ipcTimeout)
         if isinstance(result, dict) and 'exceptionType' in result:
-            if result['exceptionType'] == 'NotEnoughResourcesForAllocation':
+            if result['exceptionType'] in ['NotEnoughResourcesForAllocation', 'OutOfResourcesError']:
                 raise api.NotEnoughResourcesForAllocation(result['exceptionString'])
             else:
                 raise Exception("IPC command '%s' failed: %s: '%s'" % (

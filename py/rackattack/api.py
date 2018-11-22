@@ -1,6 +1,10 @@
 VERSION = 5
 
 
+class NotEnoughResourcesForAllocation(Exception):
+    pass
+
+
 class Client:
     """
     To create a client:
