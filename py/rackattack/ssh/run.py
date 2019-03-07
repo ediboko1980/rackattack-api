@@ -7,16 +7,16 @@ class Run:
         self._sshClient = sshClient
         self._logger = logging.getLogger('ssh')
 
-    def script(self, bashScript, verbose=True, outputTimeout=20 * 60):
+    def script(self, bashScript, verbose=True, outputTimeout=20 * 60, connectTimeout=10 * 60):
         try:
-            return self.execute(bashScript, outputTimeout, wrapCmd=True, verbose=verbose)
+            return self.execute(bashScript, outputTimeout, wrapCmd=True, verbose=verbose, connectTimeout=connectTimeout)
         except Exception as e:
             e.args += ('When running bash script "%s"' % bashScript),
             raise
 
-    def execute(self, command, outputTimeout=20 * 60, wrapCmd=True, verbose=True):
+    def execute(self, command, outputTimeout=20 * 60, wrapCmd=True, verbose=True, connectTimeout=10 * 60):
         transport = self._sshClient.get_transport()
-        chan = transport.open_session()
+        chan = transport.open_session(timeout=connectTimeout)
         commandToExecute = self._wrapCommand(command) if wrapCmd else command
         try:
             if verbose:
@@ -64,13 +64,13 @@ class Run:
             raise e
         return "".join(outputArray)
 
-    def backgroundScript(self, bashScript):
+    def backgroundScript(self, bashScript, connectTimeout=10 * 60):
         command = "\n".join([
             "nohup sh << 'RACKATTACK_SSH_RUN_SCRIPT_EOF' >& /dev/null &",
             bashScript,
             "RACKATTACK_SSH_RUN_SCRIPT_EOF\n"])
         transport = self._sshClient.get_transport()
-        chan = transport.open_session()
+        chan = transport.open_session(timeout=connectTimeout)
         try:
             chan.exec_command(command)
             status = chan.recv_exit_status()
