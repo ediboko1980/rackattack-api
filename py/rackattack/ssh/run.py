@@ -20,7 +20,8 @@ class Run:
         commandToExecute = self._wrapCommand(command) if wrapCmd else command
         try:
             if verbose:
-                self._logger.debug("Running bash script: %(cmd)s" % dict(cmd=command.strip()))
+                name = getattr(self._sshClient, 'name', '')
+                self._logger.debug("Running bash script: %(cmd)s %(name)s" % dict(cmd=command.strip(), name='on ' + name if name else name))
             chan.exec_command(commandToExecute)
             chan.settimeout(outputTimeout)
             stdin = chan.makefile('wb', -1)
