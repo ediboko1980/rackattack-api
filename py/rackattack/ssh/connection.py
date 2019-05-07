@@ -53,7 +53,7 @@ class Connection:
         self._sshClient.close()
         self._sshClient = None
 
-    def connect(self):
+    def connect(self, timeout=10):
         if self._password:
             password = dict(password=self._password)
         else:
@@ -69,7 +69,7 @@ class Connection:
             hostname=self._hostname, port=self._port,
             username=self._username,
             look_for_keys=False, allow_agent=False,
-            timeout=10,
+            timeout=timeout,
             ** password)
         self._sshClient.get_transport().set_keepalive(15)
 
