@@ -59,7 +59,7 @@ class Run:
         except socket.timeout:
             output = "".join(outputArray)
             e = socket.timeout(
-                "Timeout executing, no input for timeout of '%s'. Partial output was\n:%s" % (
+                "Timeout executing, no input for timeout of %s seconds. Partial output was:\n%s" % (
                     outputTimeout, output))
             e.output = output
             raise e
